@@ -7,6 +7,8 @@ from typing import Any
 import dspy
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.vector_search import RerankerConfig
+from databricks.vector_search.reranker import DatabricksReranker
+
 from dspy.primitives.prediction import Prediction
 
 logger = logging.getLogger(__name__)
@@ -251,6 +253,10 @@ class DatabricksRM(dspy.Retrieve):
                 less than 5, and ``{"id >=": 5, "id <": 10}`` selects records that have an ``id``
                 column value greater than or equal to 5 and less than 10. If specified, this
                 parameter overrides the `filters_json` parameter passed to the constructor.
+            columns_to_rerank (Optional[list[str]]): A list of column names to rerank the results by.
+            reranker (Optional[RerankerConfig]): A reranker configuration to use for reranking the results.
+                This should be a DatabricksReranker object to use for reranking the results.
+            score_threshold (Optional[float]): A score threshold to use for filtering the results.
 
         Returns:
             A list of dictionaries when ``use_with_databricks_agent_framework`` is ``True``,
@@ -269,11 +275,6 @@ class DatabricksRM(dspy.Retrieve):
         else:
             raise ValueError("Query must be a string or a list of floats.")
 
-        # TODO Update to the new parameters for query_index 
-        # columns_to_rerank: Optional[List[str]] = None,
-        # reranker: Optional[RerankerConfig] = None,
-        # score_threshold: Optional[float] = None,
-
         results = self._query_vector_search_index(
             index_name=self.databricks_index_name,
             k=self.k,
@@ -282,6 +283,9 @@ class DatabricksRM(dspy.Retrieve):
             query_text=query_text,
             query_vector=query_vector,
             filters_json=filters_json or self.filters_json,
+            columns_to_rerank=columns_to_rerank,
+            reranker=reranker,
+            score_threshold=score_threshold,
         )
 
         # Checking if defined columns are present in the index columns
@@ -362,17 +366,15 @@ class DatabricksRM(dspy.Retrieve):
             query_vector (Optional[list[float]]): Numeric query vector for which to find relevant
                 documents. Exactly one of query_text or query_vector must be specified.
             filters_json (Optional[str]): JSON string representing additional query filters.
-
+            columns_to_rerank (Optional[list[str]]): A list of column names to rerank the results by.
+            reranker (Optional[RerankerConfig]): A reranker configuration to use for reranking the results.
+                This should be a DatabricksReranker object to use for reranking the results.
+            score_threshold (Optional[float]): A score threshold to use for filtering the results.
         Returns:
             dict[str, Any]: Parsed JSON response from the Databricks Vector Search Index query.
         """
         if (query_text, query_vector).count(None) != 1:
             raise ValueError("Exactly one of query_text or query_vector must be specified.")
-
-        # TODO Update to the new parameters for query_index 
-        # columns_to_rerank: Optional[List[str]] = None,
-        # reranker: Optional[RerankerConfig] = None,
-        # score_threshold: Optional[float] = None,
 
         return self.workspace_client.vector_search_indexes.query_index(
             index_name=index_name,
@@ -382,4 +384,7 @@ class DatabricksRM(dspy.Retrieve):
             columns=columns,
             filters_json=filters_json,
             num_results=k,
+            columns_to_rerank=columns_to_rerank,
+            reranker=reranker,
+            score_threshold=score_threshold,
         ).as_dict()

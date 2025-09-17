@@ -6,6 +6,7 @@ from typing import Any
 
 import dspy
 from databricks.sdk import WorkspaceClient
+from databricks.sdk.service.vector_search import RerankerConfig
 from dspy.primitives.prediction import Prediction
 
 logger = logging.getLogger(__name__)
@@ -231,6 +232,9 @@ class DatabricksRM(dspy.Retrieve):
         query: str | list[float],
         query_type: str = "ANN",
         filters_json: str | None = None,
+        columns_to_rerank: list[str] | None = None,
+        reranker: RerankerConfig | None = None,
+        score_threshold: float | None = None,
     ) -> dspy.Prediction | list[dict[str, Any]]:
         """
         Retrieve documents from a Databricks Mosaic AI Vector Search Index that are relevant to the
@@ -264,6 +268,11 @@ class DatabricksRM(dspy.Retrieve):
             query_vector = query
         else:
             raise ValueError("Query must be a string or a list of floats.")
+
+        # TODO Update to the new parameters for query_index 
+        # columns_to_rerank: Optional[List[str]] = None,
+        # reranker: Optional[RerankerConfig] = None,
+        # score_threshold: Optional[float] = None,
 
         results = self._query_vector_search_index(
             index_name=self.databricks_index_name,
@@ -337,6 +346,9 @@ class DatabricksRM(dspy.Retrieve):
         query_text: str | None,
         query_vector: list[float] | None,
         filters_json: str | None,
+        columns_to_rerank: list[str] | None = None,
+        reranker: RerankerConfig | None = None,
+        score_threshold: float | None = None,
     ) -> dict[str, Any]:
         """
         Query a Databricks Vector Search Index via the Databricks SDK.
@@ -356,6 +368,11 @@ class DatabricksRM(dspy.Retrieve):
         """
         if (query_text, query_vector).count(None) != 1:
             raise ValueError("Exactly one of query_text or query_vector must be specified.")
+
+        # TODO Update to the new parameters for query_index 
+        # columns_to_rerank: Optional[List[str]] = None,
+        # reranker: Optional[RerankerConfig] = None,
+        # score_threshold: Optional[float] = None,
 
         return self.workspace_client.vector_search_indexes.query_index(
             index_name=index_name,

@@ -6,7 +6,7 @@ from typing import Any
 
 import dspy
 from databricks.sdk import WorkspaceClient
-from databricks.sdk.service.vector_search import RerankerConfig
+from databricks.sdk.service.vectorsearch import RerankerConfig
 from databricks.vector_search.reranker import DatabricksReranker
 
 from dspy.primitives.prediction import Prediction
